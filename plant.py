@@ -1,18 +1,7 @@
 import streamlit as st
 import requests
-import pandas as pd
 
-# 엑셀 파일에서 데이터 읽어오기
-plant_data = pd.read_csv('건조에 강한 실내식물.csv')  # 파일명에 맞게 변경 필요
-
-def get_plant_info(query):
-    # 사용자가 입력한 식물 이름으로 검색하여 정보 제공
-    plant_info = plant_data[plant_data['이름'] == query].dropna(axis=1)  # NaN 값을 포함한 열 제외
-
-    if not plant_info.empty:
-        return plant_info.to_dict(orient='records')
-    else:
-        return None
+ENDPOINT_LAMBDA_URL = "YOUR LAMBDA FUNCTION URL"
 
 # Streamlit 애플리케이션 시작
 st.title("어떤 식물이 궁금하신가요?")
@@ -22,7 +11,12 @@ query = st.text_input("식물 이름을 입력하세요.")
 
 # 사용자가 입력한 식물 정보 가져오기
 if query:
-    plants = get_plant_info(query)
+    # Lambda 함수에 요청 보내기
+    response_raw = requests.post(ENDPOINT_LAMBDA_URL, json={"query": query})
+    response_json = response_raw.json()
+    
+    # Lambda 함수로부터 받은 응답 처리
+    plants =  response_json.get("plants")
 
     if plants:
         st.header("검색 결과")
